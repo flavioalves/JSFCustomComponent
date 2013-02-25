@@ -1,0 +1,28 @@
+<?xml version="1.0"?> 
+<!DOCTYPE faces-config PUBLIC
+    "-//Sun Microsystems, Inc.//DTD JavaServer Faces Config 1.0//EN"
+    "http://java.sun.com/dtd/web-facesconfig_1_0.dtd"> 
+<faces-config>
+  <navigation-rule>
+    <from-view-id>/Simple.jsp</from-view-id>
+    <navigation-case>
+      <from-outcome>invalid login</from-outcome>
+      <to-view-id>/Simple.jsp</to-view-id>
+    </navigation-case>
+    <navigation-case>
+      <from-outcome>success</from-outcome>
+      <to-view-id>/Done.jsp</to-view-id>
+    </navigation-case>
+  </navigation-rule>
+
+  <!-- Page Beans -->
+  <managed-bean>
+    <description>
+      This page manages the search
+    </description>
+    <managed-bean-name>page</managed-bean-name>
+    <managed-bean-class>example.Page</managed-bean-class>
+    <managed-bean-scope>request</managed-bean-scope>
+  </managed-bean>
+
+</faces-config> 

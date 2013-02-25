@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<project name="Custom Component" default="tomcat-reload-app" basedir="../">
+
+  <property name="config.dir" value="config"/>
+  <property name="build.dir" value="${basedir}/build"/>
+  <!-- load the local version of the properties first -->
+  <property file="${config.dir}/build.local.properties"/>
+  <!-- load the default stuff -->
+  <property file="${config.dir}/build.properties"/>
+
+  <!-- general properties -->
+  <property name="java.dir" value="src"/>
+
+  <!-- web related properties -->
+  <property name="web.build.dir" value="${build.dir}/web"/>
+  <property name="web.dir" value="web"/>
+  <property name="web.java.dir" value="web/src"/>
+  <property name="web.lib.dir" value="web/WEB-INF/lib"/>
+  <property name="product.package" value="customComponent"/>
+  <!-- this works for a default, change it if you want in your properties file -->
+  <property name="web.context.path" value="/${product.package}"/>
+  <path id="jsf.classpath">
+    <pathelement location="${jsf.home}/lib/jsf-api.jar"/>
+  </path>
+  <property name="jsf.impl.lib.dir" value="${jsf.home}/lib"/>
+  <path id="jsp.classpath">
+    <pathelement location="${tomcat.home}/common/lib/jsp-api.jar"/>
+  </path>
+  <path id="jdom.classpath">
+    <pathelement location="${jdom.home}/build/jdom.jar"/>
+  </path>
+
+  <path id="tomcat.classpath">
+    <pathelement location="${tomcat.home}/server/lib/catalina-ant.jar"/>
+    <pathelement location="${tomcat.home}/common/lib/jasper-compiler.jar"/>
+    <pathelement location="${tomcat.home}/common/lib/jasper-runtime.jar"/>
+    <pathelement location="${tomcat.home}/common/lib/servlet-api.jar"/>
+    <pathelement location="${tomcat.home}/common/lib/commons-logging.jar"/>
+  </path>
+
+  <!-- properties for accessing Tomcat -->
+  <!-- Configure properties to access the Tomcat (i.e. jwsdp) Manager application -->
+  <property name="tomcat.manager.url" value="http://localhost:8080/manager"/>
+  <!-- this works for a default, change it if you want in your properties file -->
+  <property name="web.context.path" value="/${product.package}"/>
+
+  <!-- deletes the whole build directory -->
+  <target name="cleanall" description="Clean build directory.">
+    <delete includeEmptyDirs="true" quiet="true" failonerror="false">
+      <fileset dir="build" includes="**/*"/>
+      <fileset dir="generated" includes="**/*"/>
+    </delete>
+  </target>
+
+  <!-- compile the code -->
+  <target name="compile"
+          description="compile all the code for this example and puts it in a jar">
+   <mkdir dir="${build.dir}/classes"/>
+   <javac
+       srcdir="${java.dir}"
+       debug="true"
+       destdir="${build.dir}/classes"
+       includes="**/**.java" excludes="**/*Test.java">
+     <classpath refid="jsf.classpath"/>
+     <classpath refid="jsp.classpath"/>
+     <classpath refid="jdom.classpath"/>
+   </javac>
+   <mkdir dir="${build.dir}/classes/META-INF"/>
+   <copy todir="${build.dir}/classes/META-INF" flatten="true">
+     <fileset dir="${java.dir}">
+       <include name="**/*.tld"/>
+     </fileset>
+   </copy>
+   <copy todir="${build.dir}/classes/META-INF" flatten="true">
+     <fileset dir="${java.dir}">
+       <include name="**/faces-config.xml"/>
+     </fileset>
+   </copy>
+   <jar destfile="${build.dir}/${product.package}-web.jar"
+        basedir="${build.dir}/classes"/>
+  </target>
+
+  <!-- build the regular war file for this application -->
+  <target name="build.war" depends="compile" description="Builds a war file">
+   <mkdir dir="${build.dir}/web"/>
+   <!-- copy the local web files -->
+   <copy todir="${build.dir}/web">
+     <fileset dir="web">
+       <include name="**/**"/>
+     </fileset>
+   </copy>
+   <copy todir="${build.dir}/web" flatten="true">
+     <fileset dir="${java.dir}">
+       <include name="**/*.gif"/>
+     </fileset>
+   </copy>
+   <copy todir="${web.build.dir}/WEB-INF/lib">
+     <fileset dir="${jsf.impl.lib.dir}">
+       <include name="**/*.jar"/>
+     </fileset>
+   </copy>
+   <!-- copy the jstl stuff -->
+   <copy todir="${web.build.dir}/WEB-INF/lib">
+     <fileset dir="${jstl.home}/lib">
+       <include name="*.jar"/>
+     </fileset>
+   </copy>
+   <!-- copy the web code jar to the lib dir -->
+   <copy file="${build.dir}/${product.package}-web.jar" 
+         todir="${build.dir}/web/WEB-INF/lib"/>
+   <jar destfile="${build.dir}/${product.package}.war"
+        basedir="${web.build.dir}"/>
+  </target>
+
+  <!--
+    - Tomcat Deployment Targets
+    -->
+  <taskdef resource="org/apache/catalina/ant/catalina.tasks"
+           classpathref="tomcat.classpath"/>
+
+  <target name="tomcat-deploy-app" description="Deploy the App to Tomcat">
+    <deploy url="${tomcat.manager.url}"
+            username="${tomcat.manager.username}"
+            password="${tomcat.manager.password}"
+            path="${web.context.path}"
+            war="file:${build.dir}/${product.package}.war"/>
+  </target>
+
+  <target name="tomcat-undeploy-app" description="Undeploy the App from Tomcat">
+      <undeploy url="${tomcat.manager.url}"
+          username="${tomcat.manager.username}"
+          password="${tomcat.manager.password}"
+          path="${web.context.path}"/>
+  </target>
+
+  <target name="tomcat-reload-app" description="Reload the App in Tomcat - must be deployed">
+      <reload url="${tomcat.manager.url}"
+          username="${tomcat.manager.username}"
+          password="${tomcat.manager.password}"
+          path="${web.context.path}"/>
+  </target>
+
+  <target name="tomcat-start-app" description="Start the App in Tomcat - must be deployed">
+      <start url="${tomcat.manager.url}"
+          username="${tomcat.manager.username}"
+          password="${tomcat.manager.password}"
+          path="${web.context.path}"/>
+  </target>
+
+  <target name="tomcat-stop-app" description="Stop the App in Tomcat - must be deployed">
+      <stop url="${tomcat.manager.url}"
+          username="${tomcat.manager.username}"
+          password="${tomcat.manager.password}"
+          path="${web.context.path}"/>
+  </target>
+
+  <target name="tomcat-list" description="List Tomcat deployed applications">
+      <list url="${tomcat.manager.url}"
+          username="${tomcat.manager.username}"
+          password="${tomcat.manager.password}"/>
+  </target>
+
+</project>

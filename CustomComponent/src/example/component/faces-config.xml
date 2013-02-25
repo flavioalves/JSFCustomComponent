@@ -1,0 +1,30 @@
+<?xml version="1.0"?> 
+<!DOCTYPE faces-config PUBLIC
+    "-//Sun Microsystems, Inc.//DTD JavaServer Faces Config 1.0//EN"
+    "http://java.sun.com/dtd/web-facesconfig_1_0.dtd"> 
+<faces-config>
+  <component>
+  	<component-type>
+  	  CREDIT_CARD_INPUT
+    </component-type>
+  	<component-class>
+  	  example.component.UICreditCardInput
+  	</component-class>
+  </component>
+
+  <render-kit>
+
+    <renderer>
+      <description>
+        Renderer for the credit card component.
+      </description>
+      <component-family>CCFAMILY</component-family>
+      <renderer-type>
+      	CREDIT_CARD_RENDERER
+      </renderer-type>
+      <renderer-class>
+      	example.renderer.CreditCardInputRenderer
+      </renderer-class>
+    </renderer>
+  </render-kit>
+</faces-config> 
